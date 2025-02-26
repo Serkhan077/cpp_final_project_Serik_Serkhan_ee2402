@@ -1,32 +1,113 @@
-# Prerequisites
-*.d
+#include <iostream>
+#include <string>
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+using namespace std;
 
-# Precompiled Headers
-*.gch
-*.pch
+const int MAX_TRANSACTIONS = 100; // Максимальное количество записей
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+// Структура для хранения транзакции
+struct Transaction {
+    string date;        // Дата транзакции
+    string description; // Краткое описание
+    double amount;      // Сумма (доход - положительная, расход - отрицательная)
+};
 
-# Fortran module files
-*.mod
-*.smod
+int main() {
+    Transaction transactions[MAX_TRANSACTIONS]; // Массив для хранения транзакций
+    int count = 0; // Количество записанных транзакций
+    int choice;    // Выбор пользователя в меню
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+    cout << "\n=== Финансовый менеджер ===" << endl; // Заголовок программы
 
-# Executables
-*.exe
-*.out
-*.app
+    while (true) {
+        // Вывод меню
+        cout << "\n1. Добавить доход\n"
+             << "2. Добавить расход\n"
+             << "3. Показать транзакции\n"
+             << "4. Баланс\n"
+             << "5. Статистика\n"
+             << "6. Выход\n"
+             << "Выберите: ";
+
+        cin >> choice;
+
+        // Проверка ввода: если введено не число, очищаем ввод и повторяем
+        while (cin.fail()) {
+            cin.clear(); // Сброс флага ошибки
+            cin.ignore(10000, '\n'); // Очистка буфера ввода
+            cout << "Ошибка! Введите число: ";
+            cin >> choice;
+        }
+
+        if (choice == 1 || choice == 2) { // Добавление дохода или расхода
+            if (count >= MAX_TRANSACTIONS) {
+                cout << "Лимит транзакций достигнут!\n";
+                continue;
+            }
+
+            // Ввод данных о транзакции
+            cout << "Дата (ДД.ММ.ГГГГ): ";
+            cin >> transactions[count].date;
+            cin.ignore(); // Очистка буфера перед getline()
+            cout << "Описание: ";
+            getline(cin, transactions[count].description);
+            
+            cout << "Сумма: ";
+            while (!(cin >> transactions[count].amount)) { // Проверка корректного числа
+                cin.clear();
+                cin.ignore(10000, '\n');
+                cout << "Ошибка! Введите число: ";
+            }
+
+            // Коррекция знака (доход всегда положительный, расход - отрицательный)
+            if (choice == 1 && transactions[count].amount < 0)
+                transactions[count].amount = -transactions[count].amount;
+            if (choice == 2 && transactions[count].amount > 0)
+                transactions[count].amount = -transactions[count].amount;
+
+            count++; // Увеличиваем счетчик транзакций
+        } 
+        else if (choice == 3) { // Вывод списка транзакций
+            if (count == 0) {
+                cout << "Нет транзакций.\n";
+            } else {
+                cout << "\nДата       | Описание          | Сумма\n";
+                cout << "--------------------------------------\n";
+                for (int i = 0; i < count; i++) {
+                    cout << transactions[i].date << " | "
+                         << transactions[i].description.substr(0, 20) << " | "
+                         << transactions[i].amount << endl;
+                }
+            }
+        } 
+        else if (choice == 4) { // Подсчет текущего баланса
+            double balance = 0;
+            for (int i = 0; i < count; i++) 
+                balance += transactions[i].amount;
+            cout << "Баланс: " << balance << endl;
+        } 
+        else if (choice == 5) { // Статистика: доходы и расходы
+            double totalIncome = 0, totalExpense = 0;
+
+            for (int i = 0; i < count; i++) {
+                if (transactions[i].amount > 0) 
+                    totalIncome += transactions[i].amount;
+                else 
+                    totalExpense += transactions[i].amount;
+            }
+            cout << "\n=== Статистика ===\n";
+            cout << "Общий доход: " << totalIncome << endl;
+            cout << "Общий расход: " << totalExpense << endl;
+            cout << "Итоговый баланс: " << totalIncome + totalExpense << endl;
+        } 
+        else if (choice == 6) { // Выход из программы
+            cout << "Выход.\n";
+            break;
+        } 
+        else { // Обработка неверного выбора
+            cout << "Неверный выбор! Попробуйте снова.\n";
+        }
+    }
+
+    return 0;
+}
